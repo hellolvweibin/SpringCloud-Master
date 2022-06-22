@@ -11,13 +11,18 @@ package com.lv.controller;
 
 import com.lv.common.CommonResult;
 import com.lv.entity.Payment;
+import com.lv.service.LoadBalancer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.net.URI;
+import java.util.List;
 
 /**
  * @author levi_bee
@@ -41,6 +46,31 @@ public class OrderController {
     @GetMapping("/consumer/payment/get/{id}")
     public CommonResult getPayment(@PathVariable("id") Long id){
         return restTemplate.getForObject(PAYMENT_URL+"/payment/get/"+id, CommonResult.class);
+    }
+
+    @Resource
+    private LoadBalancer loadBalancer;
+
+    @Resource
+    private DiscoveryClient discoveryClient;
+
+    @GetMapping(value = "/consumer/payment/lb")
+    public String getPaymentLB()
+    {
+        //通过服务发现获取到服务id的实例列表
+        List<ServiceInstance> instances = discoveryClient.getInstances("CLOUD-PAYMENT-SERVICE");
+
+        //如果没有对应实例范围null
+        if(instances == null || instances.size() <= 0){
+            return null;
+        }
+
+        //通过自定义轮询来进行负载均衡
+        ServiceInstance serviceInstance = loadBalancer.instances(instances);
+        URI uri = serviceInstance.getUri();
+
+        return restTemplate.getForObject(uri+"/payment/lb",String.class);
+
     }
 
 }
