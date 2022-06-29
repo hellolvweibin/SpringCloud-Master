@@ -54,6 +54,15 @@ public class OrderController {
     @Resource
     private DiscoveryClient discoveryClient;
 
+    // ====================> zipkin+sleuth
+    @GetMapping("/consumer/payment/zipkin")
+    public String paymentZipkin()
+    {
+        return restTemplate.getForObject("http://localhost:8001"+"/payment/zipkin/", String.class);
+    }
+
+
+
     @GetMapping(value = "/consumer/payment/lb")
     public String getPaymentLB()
     {

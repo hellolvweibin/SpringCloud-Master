@@ -40,6 +40,12 @@ public class PaymentController{
     @Autowired
     private PaymentService paymentService;
 
+    @GetMapping("/payment/zipkin")
+    public String paymentZipkin() {
+        return "hi ,i'm payment_zipkin server fall back，welcome to here, O(∩_∩)O哈哈~";
+    }
+
+
     @GetMapping(value = "/payment/feign/timeout")
     public String paymentFeignTimeout()
     {
